@@ -1,0 +1,75 @@
+﻿@page "/weather"
+
+@inject IHttpClientFactory _clientFactory
+
+<h3>Weather Data</h3>
+
+@if(string.IsNullOrWhiteSpace(errorString) == false)
+{
+    <div class="h2">@errorString</div>
+}
+else if (forecast is null)
+{
+    <div class="h4">Loading...</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Date</th>
+                <th>Weather State</th>
+                <th>Low</th>
+                <th>High</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var w in forecast.Consolidated_weather)
+            {
+            <tr>
+                <td>@w.ApplicableDate</td>
+                <td>@w.WeatherStateName</td>
+                <td>@w.MinTemp</td>
+                <td>@w.MaxTemp</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    WeatherForcastModel forecast;
+    string errorString;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //var request = new HttpRequestMessage(HttpMethod.Get,
+        //    "https://www.metaweather.com/api/location/2357024/");
+        //var client = _clientFactory.CreateClient();
+
+        //HttpResponseMessage respone = await client.SendAsync(request);
+
+        //if (respone.IsSuccessStatusCode)
+        //{
+        //    forecast = await respone.Content.ReadFromJsonAsync<WeatherForcastModel>();
+        //    errorString = null;
+        //}
+        //else
+        //{
+        //    errorString = $"There was an error getting our forcast: { respone.ReasonPhrase }";
+        //}
+
+        var client = _clientFactory.CreateClient("meta");
+
+        try
+        {
+            forecast = await client.GetFromJsonAsync<WeatherForcastModel>("location/2357024/");
+            errorString = null;
+        }
+        catch (Exception ex)
+        {
+            errorString = $"There was an error getting our forcast: { ex.Message }";
+
+        }
+    }
+}
